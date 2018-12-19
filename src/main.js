@@ -1,10 +1,8 @@
 import Vue from 'vue'
 import App from './App.vue'
-import store from './vuex/store'
+import store from './store'
 
 Vue.config.productionTip = false
-
-// store.commit('receiveMessages', [{id: 0}])
 
 new Vue({
   store,
