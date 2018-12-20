@@ -1,13 +1,20 @@
 import React from 'react'
-import { Row, Col, Form, FormGroup, Input, Label } from 'reactstrap'
+import { Row, Col, Input } from 'reactstrap'
+import { FaStar, FaRegStar } from 'react-icons/fa'
+import Label from './Label'
 
 function Message({ message }) {
-    console.log(message)
+    const checkbox = <><Input type="checkbox" />{' '}
+        &nbsp;</>
+    const star = message.starred ? <FaStar /> : <FaRegStar />
+    const labels = message.labels.length ? message.labels.map(label => <Label key={label} text={label} />) : null
     return (
-        <Row style={{paddingLeft: '32px'}}>
+        <Row style={{ paddingLeft: '32px' }}>
             <Col>
-                <Input type="checkbox" />{' '}
-                &nbsp;
+                {checkbox}
+                {star}
+                {labels}
+
             </Col>
         </Row>
     )

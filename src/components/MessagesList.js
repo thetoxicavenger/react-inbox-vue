@@ -9,7 +9,12 @@ function MessagesList() {
             fetch("http://localhost:8082/api/messages")
                 .then(res => res.json())
                 .then(json => {
-                    setMessages(json)
+                    setMessages(json.map(item => {
+                        return {
+                            ...item,
+                            selected: false
+                        }
+                    }))
                     setMounted(true)
                 })
                 .catch(e => console.error(e))
