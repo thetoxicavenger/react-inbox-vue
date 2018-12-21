@@ -1,22 +1,39 @@
 import React from 'react'
-import { Row, Col, Input } from 'reactstrap'
-import { FaStar, FaRegStar } from 'react-icons/fa'
-import Label from './Label'
 
-function Message({ message }) {
-    const checkbox = <><Input type="checkbox" />{' '}
-        &nbsp;</>
-    const star = message.starred ? <FaStar /> : <FaRegStar />
-    const labels = message.labels.length ? message.labels.map(label => <Label key={label} text={label} />) : null
+function Message({ message, setChecked, setUnread, setStarred }) {
     return (
-        <Row style={{ paddingLeft: '32px' }}>
-            <Col>
-                {checkbox}
-                {star}
-                {labels}
-
-            </Col>
-        </Row>
+        <div className={`row message ${message.read ? "read" : "unread"} ${message.checked ? "selected" : ""}`}>
+            <div className="col-xs-1">
+                <div className="row">
+                    <div className="col-xs-2">
+                        <input
+                            type="checkbox"
+                            checked={message.checked}
+                            onChange={e => setChecked(message.id)}
+                        />
+                    </div>
+                    <div className="col-xs-2">
+                        <i
+                            className={message.starred ? "star fa fa-star" : "star fa fa-star-o"}
+                            onClick={() => setStarred(message.id)}
+                        ></i>
+                    </div>
+                </div>
+            </div>
+            <div className="col-xs-11">
+                {message.labels.length ? message.labels.map(label => <span key={label} className="label label-warning">{label}</span>) : null}
+                <a
+                    href="/"
+                    style={{ fontWeight: message.read ? "normal" : "bold" }}
+                    onClick={e => {
+                        e.preventDefault()
+                        setUnread(message.id)
+                    }}
+                >
+                    {message.subject}
+                </a>
+            </div>
+        </div>
     )
 }
 

@@ -1,11 +1,11 @@
 import React from 'react'
 
-function Label({ text }) {
+function Compose() {
     return (
         <>
-            {text}
+            Compose
         </>
     )
 }
 
-export default Label
+export default Compose
