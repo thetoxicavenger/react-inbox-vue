@@ -1,17 +1,15 @@
 import React from 'react'
+import setSelectAllButtonClass from '../util/setSelectAllButtonClass'
 
-function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCount, toggleAllChecked, setCheckedToRead, setCheckedToUnread, deleteMessages }) {
-    let selectAllButtonClasses = "fa "
+function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCount, toggleAllChecked, setCheckedToRead, setCheckedToUnread, deleteMessages, selectedLabelToAdd, setSelectedLabelToAdd, selectedLabelToRemove, setSelectedLabelToRemove }) {
+
+    /* state */
+
+    /* computed properties */
     const noneSelected = checkedCount === 0
     const someSelected = checkedCount > 0 && checkedCount < messagesCount
     const allSelected = checkedCount === messagesCount
-    if (noneSelected) {
-        selectAllButtonClasses += "fa-square-o"
-    } else if (someSelected) {
-        selectAllButtonClasses += "fa-minus-square-o"
-    } else if (allSelected) {
-        selectAllButtonClasses += "fa-check-square-o"
-    }
+
     return (
         <>
             <div className="row toolbar">
@@ -31,7 +29,7 @@ function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCou
                         }
                         return toggleAllChecked(false)
                     }}>
-                        <i className={selectAllButtonClasses}></i>
+                        <i className={setSelectAllButtonClass(noneSelected, someSelected, allSelected)}></i>
                     </button>
 
                     <button
@@ -46,15 +44,25 @@ function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCou
                         Mark As Unread
                     </button>
 
-                    <select className="form-control label-select" disabled={noneSelected}>
-                        <option>Apply label</option>
+                    <select
+                        className="form-control label-select"
+                        disabled={noneSelected}
+                        value={selectedLabelToAdd}
+                        onChange={e => setSelectedLabelToAdd(e.target.value)}
+                    >
+                        <option value="placeholder">Apply label</option>
                         <option value="dev">dev</option>
                         <option value="personal">personal</option>
                         <option value="gschool">gschool</option>
                     </select>
 
-                    <select className="form-control label-select" disabled={noneSelected}>
-                        <option>Remove label</option>
+                    <select
+                        className="form-control label-select"
+                        disabled={noneSelected}
+                        value={selectedLabelToRemove}
+                        onChange={e => setSelectedLabelToRemove(e.target.value)}
+                    >
+                        <option value="placeholder">Remove label</option>
                         <option value="dev">dev</option>
                         <option value="personal">personal</option>
                         <option value="gschool">gschool</option>

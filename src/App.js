@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import MessagesList from './components/MessagesList'
 import MessagesToolbar from './components/MessagesToolbar'
 import Compose from './components/Compose'
+import receiveApiMessage from './util/receiveApiMessage'
+import getCheckedMessagesIds from './util/getCheckedMessagesIds'
+import getMessagesWithoutLabel from './util/getMessagesWithoutLabel';
+import getMessagesWithLabel from './util/getMessagesWithLabel'
+import getCheckedMessages from './util/getCheckedMessages';
 
 function App() {
 
@@ -9,6 +14,8 @@ function App() {
   const [composing, setComposing] = useState(false)
   const [messages, setMessages] = useState([])
   const [mounted, setMounted] = useState(false)
+  const [selectedLabelToAdd, setSelectedLabeltoAdd] = useState("placeholder")
+  const [selectedLabelToRemove, setSelectedLabeltoRemove] = useState("placeholder")
 
   /* api hook */
   useEffect(() => {
@@ -17,10 +24,7 @@ function App() {
         .then(res => res.json())
         .then(json => {
           setMessages(json.map(item => {
-            return {
-              ...item,
-              checked: false
-            }
+            return receiveApiMessage(item)
           }))
           setMounted(true)
         })
@@ -33,7 +37,7 @@ function App() {
   const messagesCount = messages.length
   const checkedCount = messages.filter(message => message.checked).length
 
-  /* state updaters */
+  /* sync state updaters */
   const setChecked = id => setMessages(messages.map(message => ({ ...message, checked: id === message.id ? !message.checked : message.checked })))
   const setUnread = id => setMessages(messages.map(message => ({ ...message, read: id === message.id ? true : message.read })))
   const setStarred = id => setMessages(messages.map(message => ({ ...message, starred: id === message.id ? !message.starred : message.starred })))
@@ -56,6 +60,8 @@ function App() {
     }
     return message
   }))
+
+  /* async state updaters */
   const deleteMessages = async () => {
     try {
       const res = await fetch("http://localhost:8082/api/messages", {
@@ -65,10 +71,7 @@ function App() {
         },
         body: JSON.stringify({
           command: "delete",
-          messageIds: messages.reduce((acc, msg) => {
-            if (msg.checked) return [...acc, msg.id]
-            return acc
-          }, [])
+          messageIds: getCheckedMessagesIds(messages)
         })
       })
       if (!res.ok) {
@@ -84,6 +87,103 @@ function App() {
       alert('Error! Could not delete message.')
     }
   }
+  const newMessage = async (subject, body) => {
+    try {
+      const res = await fetch("http://localhost:8082/api/messages", {
+        method: "POST",
+        body: JSON.stringify({ subject, body }),
+        headers: {
+          "Content-Type": "application/json",
+          "accept": "application/json"
+        },
+      })
+      if (!res.ok) {
+        throw new Error("Bad res from API when trying to save a new message.")
+      } else {
+        const json = await res.json()
+        setMessages([...messages, receiveApiMessage(json)])
+        setComposing(false)
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Error! Could not save new message.')
+    }
+  }
+  const addLabel = async label => {
+    const messageIdsToUpdate = getMessagesWithoutLabel(getCheckedMessages(messages), label)
+    if (messageIdsToUpdate.length) {
+      try {
+        const res = await fetch("http://localhost:8082/api/messages", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "accept": "application/json"
+          },
+          body: JSON.stringify({
+            command: "addLabel",
+            label,
+            messageIds: messageIdsToUpdate,
+          })
+        })
+        if (!res.ok) {
+          throw new Error("Bad res from API when trying to add label to message(s).")
+        } else {
+          setMessages(messages.map(msg => {
+            if (msg.checked && messageIdsToUpdate.indexOf(msg.id) > -1) {
+              return {
+                ...msg,
+                labels: [...msg.labels, label]
+              }
+            }
+            return msg
+          }))
+        }
+      } catch (e) {
+        console.error(e)
+        alert('Error! Could not add labels to selected message(s).')
+      }
+    }
+  }
+  const removeLabel = async label => {
+    const messageIdsToUpdate = getMessagesWithLabel(getCheckedMessages(messages), label)
+    if (messageIdsToUpdate.length) {
+      try {
+        const res = await fetch("http://localhost:8082/api/messages", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "accept": "application/json"
+          },
+          body: JSON.stringify({
+            command: "removeLabel",
+            label,
+            messageIds: messageIdsToUpdate,
+          })
+        })
+        if (!res.ok) {
+          throw new Error("Bad res from API when trying to add label to message(s).")
+        } else {
+          setMessages(messages.map(msg => {
+            if (msg.checked && messageIdsToUpdate.indexOf(msg.id) > -1) {
+              return {
+                ...msg,
+                labels: msg.labels.reduce((acc, thisLabel) => {
+                  if (thisLabel !== label) {
+                    return [...acc, thisLabel]
+                  }
+                  return acc
+                }, [])
+              }
+            }
+            return msg
+          }))
+        }
+      } catch (e) {
+        console.error(e)
+        alert('Error! Could not add labels to selected message(s).')
+      }
+    }
+  }
 
   return (
     <>
@@ -96,8 +196,22 @@ function App() {
         setCheckedToRead={setCheckedToRead}
         setCheckedToUnread={setCheckedToUnread}
         deleteMessages={deleteMessages}
+        selectedLabelToAdd={selectedLabelToAdd}
+        setSelectedLabelToAdd={label => {
+          setSelectedLabeltoAdd(label)
+          if (label !== "placeholder") {
+            addLabel(label)
+          }
+        }}
+        selectedLabelToRemove={selectedLabelToRemove}
+        setSelectedLabelToRemove={label => {
+          setSelectedLabeltoRemove(label)
+          if (label !== "placeholder") {
+            removeLabel(label)
+          }
+        }}
       />
-      {composing && <Compose />}
+      {composing && <Compose newMessage={newMessage} />}
       <MessagesList
         messages={messages}
         setChecked={setChecked}
