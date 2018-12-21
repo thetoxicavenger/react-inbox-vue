@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import MessagesList from './components/MessagesList'
-import MessagesToolbar from './components/MessagesToolbar'
-import Compose from './components/Compose'
-import receiveApiMessage from './util/receiveApiMessage'
-import getCheckedMessagesIds from './util/getCheckedMessagesIds'
-import getMessagesWithoutLabel from './util/getMessagesWithoutLabel';
-import getMessagesWithLabel from './util/getMessagesWithLabel'
-import getCheckedMessages from './util/getCheckedMessages';
+import MessagesList from './MessagesList'
+import MessagesToolbar from './MessagesToolbar'
+import Compose from './Compose'
+import receiveApiMessage from '../util/receiveApiMessage'
+import getCheckedMessagesIds from '../util/getCheckedMessagesIds'
+import getMessagesWithoutLabel from '../util/getMessagesWithoutLabel';
+import getMessagesWithLabel from '../util/getMessagesWithLabel'
+import getCheckedMessages from '../util/getCheckedMessages';
 
 function App() {
 
@@ -24,9 +24,9 @@ function App() {
         .then(res => res.json())
         .then(json => {
           setMessages(json.map(item => {
+            setMounted(true)
             return receiveApiMessage(item)
           }))
-          setMounted(true)
         })
         .catch(e => console.error(e))
     }
@@ -39,7 +39,6 @@ function App() {
 
   /* sync state updaters */
   const setChecked = id => setMessages(messages.map(message => ({ ...message, checked: id === message.id ? !message.checked : message.checked })))
-  const setUnread = id => setMessages(messages.map(message => ({ ...message, read: id === message.id ? true : message.read })))
   const setStarred = id => setMessages(messages.map(message => ({ ...message, starred: id === message.id ? !message.starred : message.starred })))
   const toggleAllChecked = checked => setMessages(messages.map(message => ({ ...message, checked: checked })))
   const setCheckedToRead = () => setMessages(messages.map(message => {
@@ -184,6 +183,60 @@ function App() {
       }
     }
   }
+  const persistSetStarred = async id => {
+    try {
+      const res = await fetch("http://localhost:8082/api/messages", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "accept": "application/json"
+        },
+        body: JSON.stringify({
+          command: "star",
+          messageIds: [id],
+        })
+      })
+      if (!res.ok) {
+        throw new Error("Bad res from API when trying to toggle starred status.")
+      } else {
+        setStarred(id)
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Error! Could not toggle message\'s starred status.')
+    }
+  }
+  const setRead = async (messagesIds, read) => {
+    try {
+      const res = await fetch("http://localhost:8082/api/messages", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "accept": "application/json"
+        },
+        body: JSON.stringify({
+          command: "read",
+          messagesIds,
+        })
+      })
+      if (!res.ok) {
+        throw new Error("Bad res from API when trying to toggle starred status.")
+      } else {
+        setMessages(messages.map(msg => {
+          if (messagesIds.indexOf(msg.id) > -1) {
+            return {
+              ...msg,
+              read
+            }
+          }
+          return msg
+        }))
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Error! Could not toggle message\'s starred status.')
+    }
+  }
 
   return (
     <>
@@ -200,14 +253,14 @@ function App() {
         setSelectedLabelToAdd={label => {
           setSelectedLabeltoAdd(label)
           if (label !== "placeholder") {
-            addLabel(label)
+            return addLabel(label)
           }
         }}
         selectedLabelToRemove={selectedLabelToRemove}
         setSelectedLabelToRemove={label => {
           setSelectedLabeltoRemove(label)
           if (label !== "placeholder") {
-            removeLabel(label)
+            return removeLabel(label)
           }
         }}
       />
@@ -215,8 +268,12 @@ function App() {
       <MessagesList
         messages={messages}
         setChecked={setChecked}
-        setUnread={setUnread}
-        setStarred={setStarred}
+        toggleStarred={id => {
+          return persistSetStarred(id)
+        }}
+        setUnread={id => {
+          return setRead([id], true)
+        }}
       />
     </>
   );

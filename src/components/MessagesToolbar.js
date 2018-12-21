@@ -3,8 +3,6 @@ import setSelectAllButtonClass from '../util/setSelectAllButtonClass'
 
 function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCount, toggleAllChecked, setCheckedToRead, setCheckedToUnread, deleteMessages, selectedLabelToAdd, setSelectedLabelToAdd, selectedLabelToRemove, setSelectedLabelToRemove }) {
 
-    /* state */
-
     /* computed properties */
     const noneSelected = checkedCount === 0
     const someSelected = checkedCount > 0 && checkedCount < messagesCount

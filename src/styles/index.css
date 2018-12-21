@@ -49,8 +49,8 @@
   }
   
   .toolbar .label-select {
-    width: auto;
     display: inline;
+    width: auto;
   }
   
   .toolbar select,

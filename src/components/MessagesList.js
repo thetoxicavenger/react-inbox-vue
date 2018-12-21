@@ -1,11 +1,11 @@
 import React from 'react'
 import Message from './Message'
 
-function MessagesList({ messages, setChecked, setUnread, setStarred }) {
+function MessagesList({ messages, setChecked, setUnread, toggleStarred }) {
     const messagesList = messages.length ? messages.map(message => 
     <Message key={message.id} message={message} setChecked={setChecked} 
         setUnread={setUnread}
-        setStarred={setStarred}
+        toggleStarred={toggleStarred}
     />) : null
     return (
         <>

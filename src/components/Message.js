@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-function Message({ message, setChecked, setUnread, setStarred }) {
+function Message({ message, setChecked, setUnread, toggleStarred }) {
     const [messageBodyVisible, setMessageBodyVisible] = useState(false)
     return (
         <>
@@ -17,7 +17,7 @@ function Message({ message, setChecked, setUnread, setStarred }) {
                         <div className="col-xs-2">
                             <i
                                 className={message.starred ? "star fa fa-star" : "star fa fa-star-o"}
-                                onClick={() => setStarred(message.id)}
+                                onClick={() => toggleStarred(message.id)}
                             ></i>
                         </div>
                     </div>
