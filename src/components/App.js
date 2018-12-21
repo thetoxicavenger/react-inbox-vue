@@ -41,24 +41,6 @@ function App() {
   const setChecked = id => setMessages(messages.map(message => ({ ...message, checked: id === message.id ? !message.checked : message.checked })))
   const setStarred = id => setMessages(messages.map(message => ({ ...message, starred: id === message.id ? !message.starred : message.starred })))
   const toggleAllChecked = checked => setMessages(messages.map(message => ({ ...message, checked: checked })))
-  const setCheckedToRead = () => setMessages(messages.map(message => {
-    if (message.checked) {
-      return {
-        ...message,
-        read: true
-      }
-    }
-    return message
-  }))
-  const setCheckedToUnread = () => setMessages(messages.map(message => {
-    if (message.checked) {
-      return {
-        ...message,
-        read: false
-      }
-    }
-    return message
-  }))
 
   /* async state updaters */
   const deleteMessages = async () => {
@@ -206,7 +188,7 @@ function App() {
       alert('Error! Could not toggle message\'s starred status.')
     }
   }
-  const setRead = async (messagesIds, read) => {
+  const setRead = async (messageIds, read) => {
     try {
       const res = await fetch("http://localhost:8082/api/messages", {
         method: "PATCH",
@@ -216,14 +198,15 @@ function App() {
         },
         body: JSON.stringify({
           command: "read",
-          messagesIds,
+          messageIds,
+          read
         })
       })
       if (!res.ok) {
         throw new Error("Bad res from API when trying to toggle starred status.")
       } else {
         setMessages(messages.map(msg => {
-          if (messagesIds.indexOf(msg.id) > -1) {
+          if (messageIds.indexOf(msg.id) > -1) {
             return {
               ...msg,
               read
@@ -246,8 +229,6 @@ function App() {
         messagesCount={messagesCount}
         toggleCompose={() => setComposing(!composing)}
         toggleAllChecked={toggleAllChecked}
-        setCheckedToRead={setCheckedToRead}
-        setCheckedToUnread={setCheckedToUnread}
         deleteMessages={deleteMessages}
         selectedLabelToAdd={selectedLabelToAdd}
         setSelectedLabelToAdd={label => {
@@ -262,6 +243,11 @@ function App() {
           if (label !== "placeholder") {
             return removeLabel(label)
           }
+        }}
+        setRead={read => {
+          return setRead(
+            getCheckedMessagesIds(messages), read
+          )
         }}
       />
       {composing && <Compose newMessage={newMessage} />}

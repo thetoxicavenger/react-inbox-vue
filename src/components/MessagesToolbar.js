@@ -1,7 +1,7 @@
 import React from 'react'
 import setSelectAllButtonClass from '../util/setSelectAllButtonClass'
 
-function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCount, toggleAllChecked, setCheckedToRead, setCheckedToUnread, deleteMessages, selectedLabelToAdd, setSelectedLabelToAdd, selectedLabelToRemove, setSelectedLabelToRemove }) {
+function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCount, toggleAllChecked, deleteMessages, selectedLabelToAdd, setSelectedLabelToAdd, selectedLabelToRemove, setSelectedLabelToRemove, setRead }) {
 
     /* computed properties */
     const noneSelected = checkedCount === 0
@@ -33,12 +33,16 @@ function MessagesToolbar({ toggleCompose, checkedCount, unreadCount, messagesCou
                     <button
                         className="btn btn-default"
                         disabled={noneSelected}
-                        onClick={setCheckedToRead}
+                        onClick={() => setRead(true)}
                     >
                         Mark As Read
                     </button>
 
-                    <button className="btn btn-default" disabled={noneSelected} onClick={setCheckedToUnread}>
+                    <button
+                        className="btn btn-default"
+                        disabled={noneSelected}
+                        onClick={() => setRead(false)}
+                    >
                         Mark As Unread
                     </button>
 
